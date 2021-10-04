@@ -5,7 +5,6 @@ from ..models import Contact
 from ..signals import populate_table_data, on_delete_contact
 
 
-
 class SignalsTest(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -15,14 +14,16 @@ class SignalsTest(TestCase):
         self.assertEqual(ans, True)
 
     def test_send_mail(self):
-        class instance(object):
-            email='foo@foo.com'
-        out = on_delete_contact(None, instance= instance)
-        class instance(object):
-            email='foo_test_yes@foo.com'
+        class TestInstance(object):
+            email = 'foo@foo.com'
 
-        out_g = on_delete_contact(None, instance=instance)
+        out = on_delete_contact(None, instance=TestInstance)
+
+        class TestInstance(object):
+            email = 'foo_test_yes@foo.com'
+
+        out_g = on_delete_contact(None, instance=TestInstance)
 
         self.assertEqual(out, False)
         self.assertEqual(out_g.__class__, EmailMessage)
-        self.assertEqual(out_g.body, f'The email {instance.email} was deleted successefully! Thanks!')
+        self.assertEqual(out_g.body, f'The email {TestInstance.email} was deleted successefully! Thanks!')

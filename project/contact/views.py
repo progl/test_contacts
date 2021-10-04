@@ -6,6 +6,7 @@ from .models import Contact
 from .permissions import CUDModelPermissions
 from .serializers import ContactSerializer
 
+
 class ContactViewSet(viewsets.ModelViewSet):
     queryset = Contact.objects.all()
     serializer_class = ContactSerializer

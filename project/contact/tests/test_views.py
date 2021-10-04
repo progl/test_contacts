@@ -1,15 +1,15 @@
-from rest_framework import status
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth.models import User
 from django.contrib.auth.models import Permission
+from django.contrib.auth.models import User
+from django.test import TestCase
+from django.urls import reverse
+from project.settings.production import DEBUG
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
-from django.core.mail import EmailMessage
+
 from ..models import Contact
 from ..serializers import ContactSerializer
-from ..signals import populate_table_data, on_delete_contact
-from project.settings.production import DEBUG
+
 
 class SettingsTest(TestCase):
     def setUp(self):
@@ -19,32 +19,31 @@ class SettingsTest(TestCase):
         self.assertEqual(DEBUG, False)
 
 
-
 class ContactsTest(TestCase):
-
     """ Test module for GET all puppies API """
+
     def setUp(self):
         self.client = APIClient()
         permission_view = Permission.objects.get(name='Can view contact')
         permission_add = Permission.objects.get(name='Can add contact')
         permission_delete = Permission.objects.get(name='Can delete contact')
         permission_change = Permission.objects.get(name='Can change contact')
-        self.test_user_read = User.objects.create_user( username='test_user_read',
-                                              email='test_user_read@foo.com',
-                                              password='test_user_read$$')
+        self.test_user_read = User.objects.create_user(username='test_user_read',
+                                                       email='test_user_read@foo.com',
+                                                       password='test_user_read$$')
         self.test_user_read.user_permissions.add(permission_view)
         self.test_user_read_token = Token.objects.create(user=self.test_user_read)
         self.test_user_read_token.save()
         self.test_user_read_add = User.objects.create_user(username='test_user_read_add',
-                                                       email='test_user_read_add@foo.com',
-                                                       password='test_user_read_add')
+                                                           email='test_user_read_add@foo.com',
+                                                           password='test_user_read_add')
         self.test_user_read_add_token = Token.objects.create(user=self.test_user_read_add)
         self.test_user_read_add.user_permissions.add(permission_view)
         self.test_user_read_add.user_permissions.add(permission_add)
         self.test_user_read_add_token.save()
         self.test_user_read_add_delete = User.objects.create_user(username='user_read_add_delete',
-                                                       email='user_read_add_delete@foo.com',
-                                                       password='test_user_read$$')
+                                                                  email='user_read_add_delete@foo.com',
+                                                                  password='test_user_read$$')
         self.test_user_read_add_delete.user_permissions.add(permission_view)
         self.test_user_read_add_delete.user_permissions.add(permission_add)
         self.test_user_read_add_delete.user_permissions.add(permission_delete)
@@ -52,8 +51,8 @@ class ContactsTest(TestCase):
         self.test_user_read_add_delete_token.save()
 
         self.test_user_read_add_delete_change = User.objects.create_user(username='test_user_read_add_delete_change',
-                                                       email='test_user_read_add_delete_change@foo.com',
-                                                       password='test_user_read_add_delete_change')
+                                                                         email='test_user_read_add_delete_change@foo.com',
+                                                                         password='test_user_read_add_delete_change')
         self.test_user_read_add_delete_change.user_permissions.add(permission_view)
         self.test_user_read_add_delete_change.user_permissions.add(permission_add)
         self.test_user_read_add_delete_change.user_permissions.add(permission_delete)
@@ -69,7 +68,7 @@ class ContactsTest(TestCase):
 
     def test_one_get_not_authenticated(self):
         self.client.credentials(HTTP_AUTHORIZATION='')
-        response = self.client.get(reverse('contact', kwargs={'pk':256}  ) )
+        response = self.client.get(reverse('contact', kwargs={'pk': 256}))
         self.assertEqual(response.data['detail'], 'Authentication credentials were not provided.')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
@@ -154,10 +153,10 @@ class ContactsTest(TestCase):
         self.assertEqual(data, response_patched.json())
 
     def create_contact(self):
-        data = {'name':'new_created', 'email':'new_created@new_created.ru'}
-        response_create  = self.client.post(reverse('contacts'), data=data)
+        data = {'name': 'new_created', 'email': 'new_created@new_created.ru'}
+        response_create = self.client.post(reverse('contacts'), data=data)
         # print('response_create.json()', response_create.json())
-        response_get=None
+        response_get = None
         if 'id' in response_create.json():
             response_get = self.client.get(reverse('contact', kwargs={'pk': response_create.json()['id']}))
         return response_create, data, response_get
@@ -186,22 +185,22 @@ class ContactsTest(TestCase):
         response_delete = self.client.delete(reverse('contact', kwargs={'pk': 256}))
         return response_delete
 
-    def test_create_one_contact__read_permission(self):
+    def test_delete_one_contact__read_permission(self):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.test_user_read_token.key)
         response_delete = self.delete_contact()
         self.assertEqual(response_delete.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_create_one_contact__read_create_permission(self):
+    def test_delete_one_contact__read_create_permission(self):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.test_user_read_add_token.key)
         response_delete = self.delete_contact()
         self.assertEqual(response_delete.status_code, status.HTTP_403_FORBIDDEN)
 
-    def test_create_one_contact__read_create_delete_permission(self):
+    def test_delete_one_contact__read_create_delete_permission(self):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.test_user_read_add_delete_token.key)
         response_delete = self.delete_contact()
         self.assertEqual(response_delete.status_code, status.HTTP_204_NO_CONTENT)
 
-    def test_create_one_contact__read_create_delete_update_permission(self):
+    def test_delete_one_contact__read_create_delete_update_permission(self):
         self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.test_user_read_add_delete_change_token.key)
         response_delete = self.delete_contact()
         self.assertEqual(response_delete.status_code, status.HTTP_204_NO_CONTENT)

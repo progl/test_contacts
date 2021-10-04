@@ -112,8 +112,6 @@ def populate_table_data(model):
     model(**{'name': 'Christien', 'email': 'Christien@zorro.com'}).save()
     model(**{'name': 'Jonnathan', 'email': 'Jonnathan@zorro.com'}).save()
     model(**{'name': 'Reyes', 'email': 'Reyes@zorro.com'}).save()
-
-
     permission_view = Permission.objects.get(name='Can view contact')
     permission_add = Permission.objects.get(name='Can add contact')
     permission_delete = Permission.objects.get(name='Can delete contact')
@@ -128,7 +126,7 @@ def populate_table_data(model):
     if not User.objects.get(username='read_create'):
         user_read_add = User.objects.create_user(username='read_create',
                                                  email='jlennon@beatles.com',
-                                                password='read_create$$')
+                                                 password='read_create$$')
         user_read_add.user_permissions.add(permission_view)
         user_read_add.user_permissions.add(permission_add)
 
@@ -171,7 +169,8 @@ def on_delete_contact(sender, **kwargs):
     logger.debug(f"on_delete_contact {instance.email} sending {instance.email in settings.EMAILS_FOR_WATCH}")
     email = None
     if instance.email in settings.EMAILS_FOR_WATCH:
-        email = EmailMessage('Test', f'The email {instance.email} was deleted successefully! Thanks!', to=[instance.email], )
+        email = EmailMessage('Test', f'The email {instance.email} was deleted successefully! Thanks!',
+                             to=[instance.email], )
         email.send()
     else:
         return False

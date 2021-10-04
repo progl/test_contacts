@@ -87,9 +87,6 @@ DATABASES = {
     }
 }
 
-
-
-
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
 
@@ -142,4 +139,4 @@ REST_FRAMEWORK = {
     # ),
 }
 
-EMAILS_FOR_WATCH = ['Otisha@zorro.com', "Joya@zorro.com", 'foo_test_yes@foo.com',   ]
+EMAILS_FOR_WATCH = ['Otisha@zorro.com', "Joya@zorro.com", 'foo_test_yes@foo.com', ]
