@@ -5,7 +5,7 @@ from django.apps import AppConfig
 from django.core.mail import EmailMessage
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, Group
 import logging
 
 logger = logging.getLogger('django')
@@ -117,36 +117,38 @@ def populate_table_data(model):
     permission_delete = Permission.objects.get(name='Can delete contact')
     permission_change = Permission.objects.get(name='Can change contact')
 
+    read = Group.objects.create(name='read contract')
+    read.permissions.add(permission_view)
+    read_add = Group.objects.create(name='read_add contract')
+    read_add.permissions.add(permission_view, permission_add)
+    read_add_delete = Group.objects.create(name='read_add read_add_delete')
+    read_add_delete.permissions.add(permission_view, permission_add, permission_delete)
+    read_add_delete_change = Group.objects.create(name='read_add read_add_delete_change')
+    read_add_delete_change.permissions.add(permission_view, permission_add, permission_delete, permission_change)
+
     if not User.objects.get(username='read'):
         user_read = User.objects.create_user(username='read',
                                              email='jlennon@beatles.com',
                                              password='read$$')
-        user_read.user_permissions.add(permission_view)
+        user_read.groups.add(read)
 
     if not User.objects.get(username='read_create'):
         user_read_add = User.objects.create_user(username='read_create',
                                                  email='jlennon@beatles.com',
                                                  password='read_create$$')
-        user_read_add.user_permissions.add(permission_view)
-        user_read_add.user_permissions.add(permission_add)
+        user_read_add.groups.add(read_add)
 
     if not User.objects.get(username='read_create_delete'):
         user_read_add_delete = User.objects.create_user(username='read_create_delete',
                                                         email='jlennon@beatles.com',
                                                         password='read_create_delete$$')
-        user_read_add_delete.user_permissions.add(permission_view)
-        user_read_add_delete.user_permissions.add(permission_add)
-        user_read_add_delete.user_permissions.add(permission_delete)
+        user_read_add_delete.groups.add(read_add_delete)
 
     if not User.objects.get(username='user_read_add_delete_change'):
         user_read_add_delete_change = User.objects.create_user(username='user_read_add_delete_change',
                                                                email='jlennon@beatles.com',
                                                                password='user_read_add_delete_change$$')
-        user_read_add_delete_change.user_permissions.add(permission_view)
-        user_read_add_delete_change.user_permissions.add(permission_add)
-        user_read_add_delete_change.user_permissions.add(permission_delete)
-        user_read_add_delete_change.user_permissions.add(permission_change)
-
+        user_read_add_delete_change.groups.add(read_add_delete_change)
     return True
 
 

@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Permission, Group
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
@@ -28,37 +28,43 @@ class ContactsTest(TestCase):
         permission_add = Permission.objects.get(name='Can add contact')
         permission_delete = Permission.objects.get(name='Can delete contact')
         permission_change = Permission.objects.get(name='Can change contact')
+
+        read = Group.objects.create(name='read contract')
+        read.permissions.add(permission_view)
+        read_add = Group.objects.create(name='read_add contract')
+        read_add.permissions.add(permission_view, permission_add)
+        read_add_delete = Group.objects.create(name='read_add read_add_delete')
+        read_add_delete.permissions.add(permission_view, permission_add, permission_delete)
+        read_add_delete_change = Group.objects.create(name='read_add read_add_delete_change')
+        read_add_delete_change.permissions.add(permission_view, permission_add, permission_delete, permission_change)
+
         self.test_user_read = User.objects.create_user(username='test_user_read',
                                                        email='test_user_read@foo.com',
                                                        password='test_user_read$$')
-        self.test_user_read.user_permissions.add(permission_view)
+        self.test_user_read.groups.add(read)
+
         self.test_user_read_token = Token.objects.create(user=self.test_user_read)
         self.test_user_read_token.save()
         self.test_user_read_add = User.objects.create_user(username='test_user_read_add',
                                                            email='test_user_read_add@foo.com',
                                                            password='test_user_read_add')
+        self.test_user_read_add.groups.add(read_add)
+
         self.test_user_read_add_token = Token.objects.create(user=self.test_user_read_add)
-        self.test_user_read_add.user_permissions.add(permission_view)
-        self.test_user_read_add.user_permissions.add(permission_add)
         self.test_user_read_add_token.save()
         self.test_user_read_add_delete = User.objects.create_user(username='user_read_add_delete',
                                                                   email='user_read_add_delete@foo.com',
                                                                   password='test_user_read$$')
-        self.test_user_read_add_delete.user_permissions.add(permission_view)
-        self.test_user_read_add_delete.user_permissions.add(permission_add)
-        self.test_user_read_add_delete.user_permissions.add(permission_delete)
         self.test_user_read_add_delete_token = Token.objects.create(user=self.test_user_read_add_delete)
         self.test_user_read_add_delete_token.save()
+        self.test_user_read_add_delete.groups.add(read_add_delete)
 
         self.test_user_read_add_delete_change = User.objects.create_user(username='test_user_read_add_delete_change',
                                                                          email='test_user_read_add_delete_change@foo.com',
                                                                          password='test_user_read_add_delete_change')
-        self.test_user_read_add_delete_change.user_permissions.add(permission_view)
-        self.test_user_read_add_delete_change.user_permissions.add(permission_add)
-        self.test_user_read_add_delete_change.user_permissions.add(permission_delete)
-        self.test_user_read_add_delete_change.user_permissions.add(permission_change)
         self.test_user_read_add_delete_change_token = Token.objects.create(user=self.test_user_read_add_delete_change)
         self.test_user_read_add_delete_change_token.save()
+        self.test_user_read_add_delete_change.groups.add(read_add_delete_change)
 
     def test_all_get_not_authenticated(self):
         self.client.credentials(HTTP_AUTHORIZATION='')
